@@ -7,6 +7,9 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class Server {
+    private static PrintWriter pw;
+    private static Scanner in = new Scanner(System.in);
+
     public static void main(String[] args) {
         ServerSocket serv = null;
         Socket sock = null;
@@ -16,12 +19,28 @@ public class Server {
             sock = serv.accept();
             System.out.println("Клиент подключился");
             Scanner sc = new Scanner(sock.getInputStream());
-            PrintWriter pw = new PrintWriter(sock.getOutputStream());
-            while (true) {
-                String str = sc.nextLine();
-                if (str.equals("end")) break;
-                pw.println("Эхо: " + str);
-                pw.flush();
+            pw = new PrintWriter(sock.getOutputStream());
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        while (true) {
+                            if (in.hasNext()) {
+                                String messageToClient = in.nextLine();
+                                pw.println("Сервер: " + messageToClient);
+                                pw.flush();
+                            }
+                        }
+                    } catch (Exception e) {
+                    }
+                }
+            }).start();
+            while (true) {String str = sc.nextLine();
+                    if (str.equals("end")) break;
+                    System.out.println(str);
+                    pw.println("Эхо: " + str);
+                    pw.flush();
             }
         } catch (
                 IOException e) {
